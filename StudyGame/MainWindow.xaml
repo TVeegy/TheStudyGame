@@ -1,0 +1,33 @@
+﻿<Window x:Class="StudyGame.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StudyGame"
+        mc:Ignorable="d"
+        Title="Login Met Uw Account!" Height="138.2" Width="375.067" Background="Black" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"></ColumnDefinition>
+            <ColumnDefinition Width="1*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <!-- Login Controls -->
+        <WrapPanel Name="wrpLoginControls" Grid.Column="0" Margin="10"  HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel Name="stpLoginLabels" Width="80">
+                <Label Name="lblUsername" Height="30" Margin="0,0,10,10" Background="{StaticResource GrayBlueGradientBrush}">Username</Label>
+                <Label Name="lblPassword" Height="30" Margin="0,0,10,0" Background="{StaticResource GrayBlueGradientBrush}">Password</Label>
+            </StackPanel>
+            <StackPanel Name="stpLoginInput" Width="120">
+                <TextBox Name="txtUsername" Height="30" Margin="0,0,10,10" Background="White"></TextBox>
+                <PasswordBox Name="pwbPassword" PasswordChar="*" Height="30" Background="White"></PasswordBox>
+            </StackPanel>
+        </WrapPanel>
+
+        <Button Name="btnLogin" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Click="BtnLogin_Click">
+            <TextBlock Name="txtButtonText" Text="Login" HorizontalAlignment="Center" />
+        </Button>
+
+
+    </Grid>
+</Window>
