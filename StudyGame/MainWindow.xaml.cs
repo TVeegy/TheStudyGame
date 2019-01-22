@@ -20,7 +20,7 @@ using System.Windows.Shapes;
 namespace StudyGame
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for MainWindow.xaml TESTING
     /// </summary>
     public partial class MainWindow : Window
     {
