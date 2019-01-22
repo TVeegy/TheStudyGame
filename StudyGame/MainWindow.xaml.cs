@@ -24,26 +24,26 @@ namespace StudyGame
     /// </summary>
     public partial class MainWindow : Window
     {
-        SqlConnection connection = new SqlConnection(@"Data Source=(localdb)\mssqllocaldb;Initial Catalog=dbStudyGame;Integrated Security=True");
-        
+        private static Student oliver = new Student("GreenArrow", "XXXXX", "Oliver", "Queen", "man", new DateTime(1998,06,15));
+        private static Student felicity = new Student("Overwatch", "XXXXX", "Felicity", "Smoak", "woman", new DateTime(1998, 06, 15));
+        private static Student john = new Student("Spartan", "XXXXX", "John", "Diggle", "man", default(DateTime));
+        private static Student adrian = new Student("Prometheus", "XXXXX", "Adrian", "Chase", "", new DateTime(1998, 06, 15));
+        private static Student thea = new Student("Al Ghul", "XXXXX", "Thea", "Queen", "woman", new DateTime(1998, 06, 15));
+        private static Student ray = new Student("The Atom", "XXXXX", "Ray", "", "man", new DateTime(1998, 06, 15));
+        private static Student laurel = new Student("Black Canary", "XXXXX", "", "Lance", "woman", new DateTime(1998, 06, 15));
+
+
         public MainWindow()
         {
             InitializeComponent();
-            Database.ResetDataBase();
-            Database.PopulateDB();
-            //Database.TestDBFunctions();
-            Database.ShowCaseExceptionHandling();
+            
         }
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            String keyword = "Oliver";
-
-            DataRow row = Database.RetrieveRowWithKeys("tblStudent", keyword);
-            MessageBox.Show($"Using keyword '{keyword}' resulted in '{row[1]}'");
-
-            String name = Database.RetrieveColValueFromRow("tblStudent", row, "FirstName") + " " + Database.RetrieveColValueFromRow("tblStudent", row, "LastName");
-            MessageBox.Show($"Search based on column name resulted in '{name}'");
+            
         }
+
+
     }
 }

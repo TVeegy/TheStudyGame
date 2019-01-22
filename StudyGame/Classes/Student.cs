@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace StudyGame.Classes
 {
@@ -10,22 +11,22 @@ namespace StudyGame.Classes
     {
         private String _username="", _password="";
         private Boolean _profileCompleted = false;
-        private String _firstName="", _lastName="";
+        private String _firstName="", _lastName="", _gender="";
         private DateTime _dateOfBirth = default(DateTime);
 
-        public Student(String username, String password, String firstname="", String lastName="", DateTime dateOfBirth = default(DateTime))
+        public Student(String username, String password, String firstname="", String lastName="", String gender="", DateTime dateOfBirth = default(DateTime))
         {
             _username = username;
             _password = password;
             _firstName = firstname;
             _lastName = lastName;
+            _gender = gender;
             _dateOfBirth = dateOfBirth;
 
             CheckProfileCompletion();
-            addNewStudent(createStudentInfo());
         }
 
-        public bool ProfileComplete { get; private set; }
+        public bool profileComplete { get; private set; }
 
         public String Username
         {
@@ -48,29 +49,19 @@ namespace StudyGame.Classes
             get { return _lastName; }
             set { _lastName = value; CheckProfileCompletion();}
         }
+        public String Gender
+        {
+            get { return _gender; }
+            set { _gender = value; CheckProfileCompletion(); }
+        }
         public DateTime DateOfBirth
         {
             get { return _dateOfBirth.Date; }
             set { _dateOfBirth = value; CheckProfileCompletion();}
         }
 
-        private Boolean addNewStudent(List<String> credentials)
-        {
-            Boolean addSuccesful = false;
-
-            return addSuccesful;
-        }
-
-        private Boolean editRecords(List<String> credentials)
-        {
-            Boolean editSuccesful = false;
-
-            return editSuccesful;
-        }
-
         private List<String> createStudentInfo()
         {
-            // List up all filled-in profile information for database entry.
             List<String> credentials = new List<String> { _username, _password };
             String[] profile = { _firstName, _lastName, _dateOfBirth.ToString() };
             foreach (String item in profile)
@@ -81,22 +72,18 @@ namespace StudyGame.Classes
             return credentials;
         }
 
-        private void CheckProfileCompletion()
+        public void CheckProfileCompletion()
         {
-            // Shortcut when unnecessary
-            if (_profileCompleted != true)
+            Byte completed = 0;
+            String[] profileInfo = { _firstName, _lastName, _gender, _dateOfBirth.ToString() };
+            foreach (String item in profileInfo)
             {
-                // Counting what hasn't been filled in
-                Byte uncompleted = 0;
-                String[] profile = { _firstName, _lastName, _dateOfBirth.ToString() };
-                foreach (String item in profile)
-                {
-                    if (item == "" || item == default(DateTime).ToString())
-                        uncompleted++;
-                }
-                if (uncompleted == 0)
-                    ProfileComplete = true;
+                if (item != "" && item != default(DateTime).ToString())
+                    completed++;
             }
+
+            profileComplete = (completed == profileInfo.Length) ? true : false;
+            MessageBox.Show($"Completed? {profileComplete} in het geval: {this._username}");
         }
     }
 }
