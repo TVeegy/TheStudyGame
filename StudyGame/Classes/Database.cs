@@ -12,141 +12,126 @@ namespace StudyGame.Classes
     public class Database
     {
         static SqlConnection connection = new SqlConnection(@"Data Source=(localdb)\mssqllocaldb;Initial Catalog=dbStudyGame;Integrated Security=True");
-        static SqlCommand command;
-        static SqlDataAdapter adapter;
-        static SqlCommandBuilder builder;
 
-        static DataTable dt;
-        static DataSet ds;
-
-        public static void wipeDataBase(String tableName)
+        /// <summary>
+        /// Populates the DB with examples.
+        /// </summary>
+        public static void PopulateDB()
         {
-            connection.Open();
-            // Collect all table names and truncate them
-            DataTable tableSchema  = connection.GetSchema("Tables");
-            foreach (DataRow item in tableSchema.Rows)
+            #region Adding Users to the Database
+            String tableName = "tblStudent";
+            String[,] records =
+                { { "The Green Arrow", "X", "Oliver", "Queen", "15/06/1998" }, { "Speedy", "X", "Thea", "Queen", "15/06/1998" }, 
+                { "Bratva Captain", "X", "Anatoly", "Knyazev", "15/06/1998" }, { "Spartan", "X", "John", "Diggle", "15/06/1998" },
+                { "Overwatch", "X", "Felicity", "Smoak", "15/06/1998" }, { "Black Canary", "X", "Laurel", "Lance", "15/06/1998" } };
+            
+            CreateRecords(tableName, records);
+            #endregion
+        }
+        
+        /// <summary>
+        /// Returns by default the first row of 'tblStudent'.
+        /// </summary>
+        /// <param name="tableName">Name of the table to be used.</param>
+        /// <param name="rowIndex">Index of the record to be retrieved.</param>
+        public static DataRow RetrieveRow(String tableName = "tblStudent", Int32 rowIndex = 0)
+        {
+            return DBToDataTable(new SqlCommand($"select * from {tableName}", connection)).Rows[rowIndex];
+        }
+
+        public static String RetrieveColValueFromRow(String tableName, DataRow containingRow, String columnName)
+        {
+            Int32 colIndex = 0;
+            DataTable newDataTable = DBToDataTable(new SqlCommand($"select * from {tableName}", connection));
+            foreach (DataColumn dc in newDataTable.Columns)
             {
-                command = new SqlCommand("TRUNCATE TABLE " + item[2].ToString(), connection);
-                command.ExecuteNonQuery();
+                if (dc.ColumnName == columnName)
+                    colIndex = dc.Ordinal;
             }
-            connection.Close();
+            return containingRow[colIndex].ToString();
         }
+        
 
-        static public void PopulateTables()
+        // Amount of results
+        public static DataRow RetrieveRowWithKeys(String tableName = "tblStudent", String firstKey="", String secondKey = "", String thirdKey = "")
         {
-            DataTable dt = new DataTable();
+            DataTable newDataTable = DBToDataTable(new SqlCommand($"select * from {tableName}", connection));
+            DataRow outputRow = null;
 
-            // Filling the datatable with stored commands
-            SqlDataAdapter adapter = LoadAdapter(new SqlCommand("select * from tblStudent", connection));
-            adapter.Fill(dt);
-
-            String[,] entries = new String[,] 
-            { {"Oliver Queen", "PWD"}, {"Quentin Lance", "PWD"}, { "Thea Merlyn", "PWD" }, { "Felicity Smoak", "PWD" } };
-
-            for (int i = 0; i < entries.GetLength(0); i++)
+            Int32 colRange = 0;
+            foreach (DataColumn dc in newDataTable.Columns)
             {
-                DataRow row = dt.NewRow();
-                row[1] = entries[i,0];
-                row[2] = entries[i, 1];
-                dt.Rows.Add(row);
+                colRange++;
             }
-            UpdateAdapter(adapter, dt);
+
+            Int32 keys = 0;
+            foreach (String key in new String[] { firstKey, secondKey, thirdKey})
+            {
+                if (key != "")
+                    keys++;
+            }
+
+            for (int i = 0; i < newDataTable.Rows.Count; i++)
+            {
+                Int32 dataMatches = 0;
+                DataRow row = newDataTable.Rows[i];
+                for (int y = 0; y < colRange; y++)
+                {
+                    if (row[y].ToString() == firstKey || row[y].ToString() == secondKey || row[y].ToString() == thirdKey)
+                        dataMatches++;
+                }
+                if (dataMatches == keys)
+                    outputRow = row;
+            }
+            return outputRow;
         }
 
-        static SqlDataAdapter LoadAdapter(SqlCommand command)
+        /// <summary>
+        /// Returns by default the first row of 'tblStudent'.
+        /// </summary>
+        public static void CreateRecords(String tableName, String[,] recordInfo)
         {
+            DataTable newDataTable = DBToDataTable(new SqlCommand($"select * from {tableName}", connection));
+            
+            Int32 columnCounter = 0;
+            foreach (DataColumn dc in newDataTable.Columns)
+            {
+                columnCounter++;
+            }
+            
+            for (int i = 0; i < recordInfo.GetLength(0); i++)
+            {
+                DataRow newRow = newDataTable.NewRow();
+                for (int y = 0; y < recordInfo.GetLength(1); y++)
+                {
+                    newRow[y+1] = recordInfo[i, y];
+                }
+                newDataTable.Rows.Add(newRow);
+            }
+
+            DataTableToDB(newDataTable, tableName);
+        }
+
+        public static DataTable DBToDataTable(SqlCommand command)
+        {
+            DataTable tblTable = new DataTable();
             connection.Open();
-            adapter = new SqlDataAdapter(command);
-            builder = new SqlCommandBuilder(adapter);
+            SqlDataAdapter adapter = new SqlDataAdapter(command);
             connection.Close();
-            return adapter;
+
+            adapter.Fill(tblTable);
+            return tblTable;
         }
 
-        static void UpdateAdapter(SqlDataAdapter adapter, DataTable dt)
+        // Work away tablename, its a function!
+        public static void DataTableToDB(DataTable dt, String tableName)
         {
-            // Calling commands in given dataset for operation against database connection
+            SqlDataAdapter adapter = new SqlDataAdapter($"select * from {tableName}", connection);
+            SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
+
             connection.Open();
             adapter.Update(dt);
             connection.Close();
-        }
-
-        private void TestDatabase()
-        {
-            // Initialising a connection
-            String connectionString = @"Data Source=(localdb)\mssqllocaldb;Initial Catalog=dbStudyGame;Integrated Security=True"; // @ neglects backslashes
-            SqlConnection connection = new SqlConnection(connectionString);
-
-            // SQL Command
-            SqlCommand command;
-            // Represents a set of data commands and a database connection that are used to fill the DataSet and update a SQL Server database.
-            SqlDataAdapter adapter;
-            // SQL generator object
-            SqlCommandBuilder builder;
-
-            // One table with rows and columns
-            DataTable tblStudent = new DataTable();
-            // Dataset van databases
-            DataSet ds = new DataSet();
-
-            connection.Open();
-
-            // Remove everything
-            string sqlTrunc = "TRUNCATE TABLE " + "tblStudent";
-            SqlCommand cmd = new SqlCommand(sqlTrunc, connection);
-            cmd.ExecuteNonQuery();
-
-            // Initialising command into adapter to feed builder.
-            command = new SqlCommand("select * from tblStudent", connection);
-            adapter = new SqlDataAdapter(command);
-            builder = new SqlCommandBuilder(adapter);
-
-            //MessageBox.Show(adapter.SelectCommand.CommandText);
-            //MessageBox.Show(builder.GetUpdateCommand().CommandText);
-            connection.Close();
-
-            // Filling the datatable with stored commands
-            adapter.Fill(tblStudent);
-
-            // Create a first record
-            DataRow firstRow = tblStudent.NewRow();
-            firstRow[1] = "Matt Murdock";
-            firstRow[2] = "Password";
-            tblStudent.Rows.Add(firstRow);
-
-            // Create a second record
-            DataRow secondRow = tblStudent.NewRow();
-            secondRow[1] = "Foggy Nelson";
-            secondRow[2] = "Password";
-            tblStudent.Rows.Add(secondRow);
-
-            // Create a third record
-            DataRow thirdRow = tblStudent.NewRow();
-            thirdRow[1] = "Karen Page";
-            thirdRow[2] = "Password";
-            tblStudent.Rows.Add(thirdRow);
-
-            // Remove the first and last record
-            for (int index = tblStudent.Rows.Count - 1; index > 1; index--)
-            {
-                tblStudent.Rows.RemoveAt(index - 1);
-            }
-
-            // Calling commands in given dataset for operation against database connection
-            connection.Open();
-            adapter.Update(tblStudent);
-            connection.Close();
-
-            // Filling dataset with command in adapter.
-            adapter.Fill(ds, "tblStudent");
-            //adapter.Fill(tblStudent);
-
-            // Showing rows in dataset table tblStudent
-            foreach (DataRow row in ds.Tables["tblStudent"].Rows)
-            {
-                //MessageBox.Show($"Username: {row[1]} -  Password: {row[2]}");
-            }
-
-            Connected();
         }
 
         private static void Connection_StateChange(object sender, System.Data.StateChangeEventArgs e)
@@ -154,67 +139,95 @@ namespace StudyGame.Classes
             MessageBox.Show($"{e.OriginalState} -> {e.CurrentState}");
         }
 
-        static void Connected()
+        public static void ShowCaseDBFunctions()
         {
-            String connectionString = @"Data Source=(localdb)\mssqllocaldb;Initial Catalog=dbStudyGame;Integrated Security=True"; // @ neglects backslashes
-            SqlConnection connection = new SqlConnection(connectionString);
-            SqlCommand command;
-            SqlDataReader reader;
-            int resultaat;
-
             connection.StateChange += Connection_StateChange;
+            
+            SqlCommand cmdDaredevil = new SqlCommand("insert into tblStudent (Username, Password, FirstName, LastName) values ('Daredevil', 'Password', 'Matt', 'Murdock')", connection);
+            SqlCommand cmdLookupA = new SqlCommand("select Firstname from tblStudent where FirstName like '%a%'", connection);
+
             connection.Open();
+            cmdDaredevil.ExecuteNonQuery();
+            MessageBox.Show($"Adding Matt to the database, Displaying first name with an 'a': {cmdLookupA.ExecuteScalar()}");
+            connection.Close();
 
-            // Adding the entry "Daredevil"
-            command = new SqlCommand("insert into tblStudent (Username, Password) values ('Daredevil', 'Password')", connection);
-            //MessageBox.Show($"Rows affected: {resultaat = command.ExecuteNonQuery()}");
+            connection.Open();
+            SqlCommand cmdLastAdded = new SqlCommand("SELECT Username FROM tblStudent WHERE StudentID = (SELECT MAX(StudentID) FROM tblStudent)", connection);
+            SqlCommand cmdBeforeLastAdded = new SqlCommand("SELECT Username FROM tblStudent WHERE StudentID = (SELECT (MAX(StudentID)-1) FROM tblStudent)", connection);
+            MessageBox.Show($"Last added: {cmdLastAdded.ExecuteScalar()} and under that: {cmdBeforeLastAdded.ExecuteScalar()}");
+            connection.Close();
 
-            // Performing a query and returning the first result
-            command = new SqlCommand("select count(*) from tblStudent", connection);
-            //MessageBox.Show($"Number of entries: {resultaat = (int)command.ExecuteScalar()}");
-            command = new SqlCommand("SELECT Username FROM tblStudent WHERE StudentID = (SELECT MAX(StudentID) FROM tblStudent)", connection);
-            //MessageBox.Show($"Last entry Username: {command.ExecuteScalar()}");
+            SqlCommand cmdFindA = new SqlCommand("select Username from tblStudent where FirstName like '%a%'", connection);
 
-            // NOTE: DOesn't work with multiple exceptions (for logging)
+            connection.Open();
+            SqlDataReader reader = cmdFindA.ExecuteReader();
+            while (reader.Read())
+            {
+                MessageBox.Show($"Usernames of students with an 'a' in the name: {reader.GetValue(0)}");
+            }
+            connection.Close();
+        }
+
+        public static void ShowCaseExceptionHandling()
+        {
             try
             {
-                // Reading all entries in database using the command's connection
-                command = new SqlCommand("select *ERROR from tblStudent", connection);
-                reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    //MessageBox.Show($"{reader.GetInt32(0)}: {reader.GetValue(1)}"); //nummer vd kolom vanaf 0
-                }
+                // Foute conversie;
+                object objectString = "tets";
+                Int32 testInt = Convert.ToInt32(objectString);
+
+                // Foute SQL
+                SqlCommand command = new SqlCommand("select NOTAQUERY from tblStudent", connection);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
             }
 
-            catch (Exception ex) // Default foutmelding
+            catch (Exception ex)
             {
-                switch (ex.HResult) //HResult = getal ivm een specifieke fout
+                switch (ex.HResult)
                 {
-                    case -2146233079:
-                        ErrorLog.AddErrorMessage(ex, HelperMethods.GetMethodName());
-                        break;
-                    case -2146232060:
-                        ErrorLog.AddErrorMessage(ex, HelperMethods.GetMethodName());
-                        break;
                     default:
                         ErrorLog.AddErrorMessage(ex, HelperMethods.GetMethodName());
                         break;
                 }
+
+                MessageBox.Show("Message stored");
+                String output = "";
+                foreach (String item in ErrorLog.ErrorLogList)
+                {
+                    output += "\n" + item;
+                }
+                MessageBox.Show(output);
             }
+        }
 
-            // command = new SqlCommand("delete from tblStudent", connection);
-            // MessageBox.Show($"Execute: {command.ExecuteNonQuery()}");
-            // Resultaat vd query = ExecuteScalar (object)
-            // NonQuery = hoeveelheid betrokken records (integer)
-            connection.Close();
-
-            String errors = "";
-            foreach (String error in ErrorLog.ErrorLogList)
+        /// <summary>
+        /// Wiping out any entries in the database.
+        /// </summary>
+        /// <param tableName="dbStudent">Used to wipe a specified table.</param>
+        public static void ResetDataBase(String tableName = default(String))
+        {
+            SqlCommand command;
+            if (tableName == default(String))
             {
-                errors += error + "\n";
+                connection.Open();
+                DataTable tableSchema = connection.GetSchema("Tables"); // Collect all table names and truncate them
+                foreach (DataRow item in tableSchema.Rows)
+                {
+                    command = new SqlCommand("TRUNCATE TABLE " + item[2].ToString(), connection);
+                    command.ExecuteNonQuery();
+                }
+                connection.Close();
             }
-            MessageBox.Show(errors);
+
+            else
+            {
+                connection.Open();
+                command = new SqlCommand("TRUNCATE TABLE " + tableName, connection);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
         }
     }
 }
