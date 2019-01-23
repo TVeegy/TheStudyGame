@@ -64,11 +64,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Classes\Administrator.cs" />
-    <Compile Include="Classes\Boss.cs" />
-    <Compile Include="Classes\Challenge.cs" />
-    <Compile Include="Classes\Chapter.cs" />
-    <Compile Include="Classes\CheckPoint.cs" />
-    <Compile Include="Classes\Course.cs" />
+    <Compile Include="Classes\Login.cs" />
+    <Compile Include="Classes\Unused\Boss.cs" />
+    <Compile Include="Classes\Unused\Challenge.cs" />
+    <Compile Include="Classes\Unused\Chapter.cs" />
+    <Compile Include="Classes\Unused\CheckPoint.cs" />
+    <Compile Include="Classes\Unused\Course.cs" />
     <Compile Include="Classes\Database.cs" />
     <Compile Include="Classes\ErrorLog.cs" />
     <Compile Include="Classes\HelperMethods.cs" />
@@ -77,16 +78,16 @@
     <Compile Include="Classes\Ideas\CreatureCodex.cs" />
     <Compile Include="Classes\Ideas\CreatureInteraction.cs" />
     <Compile Include="Classes\Ideas\Evolution.cs" />
-    <Compile Include="Classes\FieldOfInterest.cs" />
-    <Compile Include="Classes\Goal.cs" />
+    <Compile Include="Classes\Unused\FieldOfInterest.cs" />
+    <Compile Include="Classes\Unused\Goal.cs" />
     <Compile Include="Classes\Ideas\Home.cs" />
-    <Compile Include="Classes\Inventory.cs" />
+    <Compile Include="Classes\Unused\Inventory.cs" />
     <Compile Include="Classes\Ideas\Item.cs" />
-    <Compile Include="Classes\NPC.cs" />
-    <Compile Include="Classes\Quest.cs" />
-    <Compile Include="Classes\Reward.cs" />
+    <Compile Include="Classes\Unused\NPC.cs" />
+    <Compile Include="Classes\Unused\Quest.cs" />
+    <Compile Include="Classes\Unused\Reward.cs" />
     <Compile Include="Classes\Student.cs" />
-    <Compile Include="Classes\StudyMap.cs" />
+    <Compile Include="Classes\Unused\StudyMap.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

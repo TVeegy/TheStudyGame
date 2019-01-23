@@ -24,26 +24,34 @@ namespace StudyGame
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static Student oliver = new Student("GreenArrow", "XXXXX", "Oliver", "Queen", "man", new DateTime(1998,06,15));
-        private static Student felicity = new Student("Overwatch", "XXXXX", "Felicity", "Smoak", "woman", new DateTime(1998, 06, 15));
-        private static Student john = new Student("Spartan", "XXXXX", "John", "Diggle", "man", default(DateTime));
-        private static Student adrian = new Student("Prometheus", "XXXXX", "Adrian", "Chase", "", new DateTime(1998, 06, 15));
-        private static Student thea = new Student("Al Ghul", "XXXXX", "Thea", "Queen", "woman", new DateTime(1998, 06, 15));
-        private static Student ray = new Student("The Atom", "XXXXX", "Ray", "", "man", new DateTime(1998, 06, 15));
-        private static Student laurel = new Student("Black Canary", "XXXXX", "", "Lance", "woman", new DateTime(1998, 06, 15));
 
 
         public MainWindow()
         {
             InitializeComponent();
-            
+            Student.PopulateStudents();
+
         }
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            
+            String message = "";
+            switch (Login.HandleLogin(txtUsername.Text, pwbPassword.Password))
+            {
+                case "success":
+                    message = "Login successful!";
+                    break;
+                case "username":
+                    message = "wrong password!";
+                    break;
+                case "password":
+                    message = "Wrong username!";
+                    break;
+                case "":
+                    message = "Neither of both was right";
+                    break;
+            }
+            MessageBox.Show(message);
         }
-
-
     }
 }

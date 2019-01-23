@@ -12,7 +12,10 @@ namespace StudyGame.Classes
     public class Database
     {
         static SqlConnection connection = new SqlConnection(@"Data Source=(localdb)\mssqllocaldb;Initial Catalog=dbStudyGame;Integrated Security=True");
+        public static DataRow activeUser = null;
 
+
+        /*---------------------------------------------------------// Populate the Database //---------------------------------------------------------*/
         /// <summary>
         /// Populates the DB with examples.
         /// </summary>
@@ -21,110 +24,188 @@ namespace StudyGame.Classes
             #region Adding Users to the Database
             String tableName = "tblStudent";
             String[,] records =
-                { { "The Green Arrow", "X", "Oliver", "Queen", "15/06/1998" }, { "Speedy", "X", "Thea", "Queen", "15/06/1998" }, 
-                { "Bratva Captain", "X", "Anatoly", "Knyazev", "15/06/1998" }, { "Spartan", "X", "John", "Diggle", "15/06/1998" },
-                { "Overwatch", "X", "Felicity", "Smoak", "15/06/1998" }, { "Black Canary", "X", "Laurel", "Lance", "15/06/1998" } };
+                { { "TheGreenArrow", "X", "Oliver", "Queen", "15/06/1998" }, { "Speedy", "X", "Thea", "Queen", "15/06/1998" }, 
+                { "BratvaCaptain", "X", "Anatoly", "Knyazev", "15/06/1998" }, { "Spartan", "X", "John", "Diggle", "15/06/1998" },
+                { "Overwatch", "X", "Felicity", "Smoak", "15/06/1998" }, { "BlackCanary", "X", "Laurel", "Lance", "15/06/1998" } };
             
-            CreateRecords(tableName, records);
+            CreateRecords(tableName, null, records);
             #endregion
         }
-        
+
+        /*---------------------------------------------------------// Retrieve Data from the Database //---------------------------------------------------------*/
+
         /// <summary>
-        /// Returns by default the first row of 'tblStudent'.
+        /// Retrieves a single Datarow from a Datatable when given a tableName and/or rowIndex.
         /// </summary>
         /// <param name="tableName">Name of the table to be used.</param>
-        /// <param name="rowIndex">Index of the record to be retrieved.</param>
-        public static DataRow RetrieveRow(String tableName = "tblStudent", Int32 rowIndex = 0)
+        public static DataRow RetrieveRow(String tableName, Int32 rowIndex = 0)
         {
-            return DBToDataTable(new SqlCommand($"select * from {tableName}", connection)).Rows[rowIndex];
+            return FillDataTable(new SqlCommand($"select * from {tableName}", connection)).Rows[rowIndex];
         }
 
-        public static String RetrieveColValueFromRow(String tableName, DataRow containingRow, String columnName)
+        /// <summary>
+        /// Retrieves the column index when given a tableName and a columnName.
+        /// </summary>
+        public static Int32 RetrieveColumnIndex(String tableName, String columnName)
         {
-            Int32 colIndex = 0;
-            DataTable newDataTable = DBToDataTable(new SqlCommand($"select * from {tableName}", connection));
+            DataTable newDataTable = FillDataTable(new SqlCommand($"select * from {tableName}", connection));
+
+            Int32 columnIndex = 0;
             foreach (DataColumn dc in newDataTable.Columns)
             {
                 if (dc.ColumnName == columnName)
-                    colIndex = dc.Ordinal;
+                    columnIndex = dc.Ordinal;
             }
-            return containingRow[colIndex].ToString();
+            return columnIndex;
         }
-        
 
-        // Amount of results
-        public static DataRow RetrieveRowWithKeys(String tableName = "tblStudent", String firstKey="", String secondKey = "", String thirdKey = "")
+        /// <summary>
+        /// Retrieves a String value from a Datarow when given a columnName.
+        /// </summary>
+        public static String RetrieveColumnName(DataRow containingRow, String columnName)
         {
-            DataTable newDataTable = DBToDataTable(new SqlCommand($"select * from {tableName}", connection));
+            String tableName = containingRow.Table.TableName;
+            DataTable dt = FillDataTable(new SqlCommand($"select * from {tableName}", connection));
+
+            return containingRow[RetrieveColumnIndex(tableName, columnName)].ToString();
+        }
+
+
+        /*---------------------------------------------------------// Retrieve Login-Data from the Database //---------------------------------------------------------*/
+        
+        /// <summary>
+        /// Retrieves username and password from the database and returns succes or the correct value.
+        /// </summary>
+        public static String RetrieveAndCheckLogin(String username, String password)
+        {
+            DataTable dt = FillDataTable(new SqlCommand($"select * from tblStudent", connection));
+            String output = "";
+
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                DataRow row = dt.Rows[i];
+                if (row[RetrieveColumnIndex("tblStudent", "Username")].ToString() == username && row[RetrieveColumnIndex("tblStudent", "Password")].ToString() == password)
+                {
+                    activeUser = row;
+                    return "success";
+                }
+
+                if (row[RetrieveColumnIndex("tblStudent", "Username")].ToString() == username)
+                    output = "username";
+
+                if (row[RetrieveColumnIndex("tblStudent", "Password")].ToString() == password)
+                    output = "password";
+                
+            }
+            return output;
+        }
+
+
+        /*---------------------------------------------------------// Searching the Database //---------------------------------------------------------*/
+
+        /// <summary>
+        /// Returns a datarow when given keys to search with in the database.
+        /// </summary>
+        public static DataRow RetrieveRowWithKeys(String tableName, String firstKey="", String secondKey = "", String thirdKey = "")
+        {
+            DataTable dt = FillDataTable(new SqlCommand($"select * from {tableName}", connection));
             DataRow outputRow = null;
 
-            Int32 colRange = 0;
-            foreach (DataColumn dc in newDataTable.Columns)
+            Int32 columnRange = 0;
+            foreach (DataColumn dc in dt.Columns)
             {
-                colRange++;
+                columnRange++;
             }
 
-            Int32 keys = 0;
+            Int32 givenKeys = 0;
             foreach (String key in new String[] { firstKey, secondKey, thirdKey})
             {
                 if (key != "")
-                    keys++;
+                    givenKeys++;
             }
 
-            for (int i = 0; i < newDataTable.Rows.Count; i++)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
                 Int32 dataMatches = 0;
-                DataRow row = newDataTable.Rows[i];
-                for (int y = 0; y < colRange; y++)
+                DataRow row = dt.Rows[i];
+                for (int y = 0; y < columnRange; y++)
                 {
                     if (row[y].ToString() == firstKey || row[y].ToString() == secondKey || row[y].ToString() == thirdKey)
                         dataMatches++;
                 }
-                if (dataMatches == keys)
+                if (dataMatches == givenKeys)
                     outputRow = row;
             }
             return outputRow;
         }
 
+        /*---------------------------------------------------------// Creating records in the Database //---------------------------------------------------------*/
+
         /// <summary>
-        /// Returns by default the first row of 'tblStudent'.
+        /// Creates records by input of an 2D or 1D array when given a tableName.
         /// </summary>
-        public static void CreateRecords(String tableName, String[,] recordInfo)
+        public static void CreateRecords(String tableName, String[] recordInfo, String[,] multipleRecordInfo=null)
         {
-            DataTable newDataTable = DBToDataTable(new SqlCommand($"select * from {tableName}", connection));
+            DataTable newDataTable = FillDataTable(new SqlCommand($"select * from {tableName}", connection));
             
-            Int32 columnCounter = 0;
-            foreach (DataColumn dc in newDataTable.Columns)
-            {
-                columnCounter++;
-            }
-            
-            for (int i = 0; i < recordInfo.GetLength(0); i++)
+            if (multipleRecordInfo == null)
             {
                 DataRow newRow = newDataTable.NewRow();
-                for (int y = 0; y < recordInfo.GetLength(1); y++)
+                for (int i = 0; i < recordInfo.Length; i++)
                 {
-                    newRow[y+1] = recordInfo[i, y];
+                    newRow[i + 1] = recordInfo[i];
                 }
                 newDataTable.Rows.Add(newRow);
             }
+            
+            else
+            {
+                Int32 columnCounter = 0;
+                foreach (DataColumn dc in newDataTable.Columns)
+                {
+                    columnCounter++;
+                }
 
-            DataTableToDB(newDataTable, tableName);
+                for (int i = 0; i < multipleRecordInfo.GetLength(0); i++)
+                {
+                    DataRow newRow = newDataTable.NewRow();
+                    for (int y = 0; y < multipleRecordInfo.GetLength(1); y++)
+                    {
+                        newRow[y + 1] = multipleRecordInfo[i, y];
+                    }
+                    newDataTable.Rows.Add(newRow);
+                }
+            }
+
+            UpdateDataTable(newDataTable, tableName);
         }
 
-        public static DataTable DBToDataTable(SqlCommand command)
+
+        /*---------------------------------------------------------// Core database communication //---------------------------------------------------------*/
+
+        private static void Connection_StateChange(object sender, System.Data.StateChangeEventArgs e)
         {
-            DataTable tblTable = new DataTable();
+            //MessageBox.Show($"{e.OriginalState} -> {e.CurrentState}");
+        }
+
+        /// <summary>
+        /// Fills the datatable using the sqlAdapter when given an SQL command.
+        /// </summary>
+        public static DataTable FillDataTable(SqlCommand fillCommand)
+        {
+            DataTable dt = new DataTable();
             connection.Open();
-            SqlDataAdapter adapter = new SqlDataAdapter(command);
+            SqlDataAdapter adapter = new SqlDataAdapter(fillCommand);
             connection.Close();
 
-            adapter.Fill(tblTable);
-            return tblTable;
+            adapter.Fill(dt);
+            return dt;
         }
 
-        // Work away tablename, its a function!
-        public static void DataTableToDB(DataTable dt, String tableName)
+        /// <summary>
+        /// Updates the datatable using the sqlAdapter when given a datatable
+        /// <summary>
+        public static void UpdateDataTable(DataTable dt, String tableName)
         {
             SqlDataAdapter adapter = new SqlDataAdapter($"select * from {tableName}", connection);
             SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
@@ -133,16 +214,42 @@ namespace StudyGame.Classes
             adapter.Update(dt);
             connection.Close();
         }
-
-        private static void Connection_StateChange(object sender, System.Data.StateChangeEventArgs e)
+        
+        /// <summary>
+        /// Resetting all values to nothing in the database.
+        /// </summary>
+        /// <param tableName="dbStudent">Used to wipe a specified table.</param>
+        public static void ResetDataBase(String tableName = default(String))
         {
-            MessageBox.Show($"{e.OriginalState} -> {e.CurrentState}");
+            SqlCommand command;
+            if (tableName == default(String))
+            {
+                connection.Open();
+                DataTable tableSchema = connection.GetSchema("Tables"); // Collect all table names and truncate them
+                foreach (DataRow item in tableSchema.Rows)
+                {
+                    command = new SqlCommand("TRUNCATE TABLE " + item[2].ToString(), connection);
+                    command.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+
+            else
+            {
+                connection.Open();
+                command = new SqlCommand("TRUNCATE TABLE " + tableName, connection);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
         }
+
+
+        /*---------------------------------------------------------// Showcasing the database //---------------------------------------------------------*/
 
         public static void ShowCaseDBFunctions()
         {
             connection.StateChange += Connection_StateChange;
-            
+
             SqlCommand cmdDaredevil = new SqlCommand("insert into tblStudent (Username, Password, FirstName, LastName) values ('Daredevil', 'Password', 'Matt', 'Murdock')", connection);
             SqlCommand cmdLookupA = new SqlCommand("select Firstname from tblStudent where FirstName like '%a%'", connection);
 
@@ -199,34 +306,6 @@ namespace StudyGame.Classes
                     output += "\n" + item;
                 }
                 MessageBox.Show(output);
-            }
-        }
-
-        /// <summary>
-        /// Wiping out any entries in the database.
-        /// </summary>
-        /// <param tableName="dbStudent">Used to wipe a specified table.</param>
-        public static void ResetDataBase(String tableName = default(String))
-        {
-            SqlCommand command;
-            if (tableName == default(String))
-            {
-                connection.Open();
-                DataTable tableSchema = connection.GetSchema("Tables"); // Collect all table names and truncate them
-                foreach (DataRow item in tableSchema.Rows)
-                {
-                    command = new SqlCommand("TRUNCATE TABLE " + item[2].ToString(), connection);
-                    command.ExecuteNonQuery();
-                }
-                connection.Close();
-            }
-
-            else
-            {
-                connection.Open();
-                command = new SqlCommand("TRUNCATE TABLE " + tableName, connection);
-                command.ExecuteNonQuery();
-                connection.Close();
             }
         }
     }
