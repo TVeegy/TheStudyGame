@@ -1,0 +1,12 @@
+﻿<Application x:Class="TimeKeeper.Presentation.Wpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TimeKeeper.Presentation.Wpf"
+                xmlns:views="clr-namespace:TimeKeeper.Presentation.Wpf.Views"
+				xmlns:viewmodels="clr-namespace:TimeKeeper.Presentation.Wpf.ViewModels"
+				xmlns:data="clr-namespace:TimeKeeper.Data;assembly=TimeKeeper.Data" 
+             StartupUri="/Views/TimeKeeperMainView.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
